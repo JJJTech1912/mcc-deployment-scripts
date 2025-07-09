@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ==============================================================================
-# Microsoft Connected Cache (MCC) Automated Deployment Script (v4)
+# Microsoft Connected Cache (MCC) Automated Deployment Script (v5)
 #
 # Description:
 # This script automates the setup and provisioning of a Microsoft Connected
@@ -9,8 +9,8 @@
 #   1. Updates the system's package lists and upgrades existing packages.
 #   2. Installs the 'unzip' utility if it is not already present.
 #   3. Downloads the official MCC installation ZIP archive from Microsoft.
-#   4. Extracts the contents of the ZIP archive.
-#   5. Makes the installation script executable (assuming it's in a subdirectory).
+#   4. Extracts the contents of the ZIP archive (ignoring non-fatal warnings).
+#   5. Makes the installation script executable.
 #   6. Runs the provisioning script with the specified customer and node details.
 #
 # ==============================================================================
@@ -75,9 +75,12 @@ echo "-------------------------------------------------"
 # Step 4: Extract the Provisioning Script
 # ---------------------------------------
 echo "[Step 4/5] Extracting all files from the archive..."
-# -o flag overwrites existing files without prompting
-unzip -o "$ZIP_FILENAME"
-# Check if the expected script now exists at its path
+# -o flag overwrites existing files without prompting.
+# We add "|| true" to prevent the script from exiting due to a non-zero exit code
+# from unzip (which can happen with warnings, like the backslash path warning).
+unzip -o "$ZIP_FILENAME" || true
+
+# Now, we robustly check if the file exists.
 if [ -f "$INSTALLER_PATH" ]; then
     echo "Successfully found '$INSTALLER_PATH'."
     # Optional: Clean up the downloaded zip file
