@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ==============================================================================
-# Microsoft Connected Cache (MCC) Automated Deployment Script (v3)
+# Microsoft Connected Cache (MCC) Automated Deployment Script (v4)
 #
 # Description:
 # This script automates the setup and provisioning of a Microsoft Connected
@@ -9,8 +9,8 @@
 #   1. Updates the system's package lists and upgrades existing packages.
 #   2. Installs the 'unzip' utility if it is not already present.
 #   3. Downloads the official MCC installation ZIP archive from Microsoft.
-#   4. Extracts the provisioning script from the ZIP archive.
-#   5. Makes the installation script executable.
+#   4. Extracts the contents of the ZIP archive.
+#   5. Makes the installation script executable (assuming it's in a subdirectory).
 #   6. Runs the provisioning script with the specified customer and node details.
 #
 # ==============================================================================
@@ -29,7 +29,10 @@ DRIVE_PATH_AND_SIZE="/cachenode/node1,450"
 # --- Script Variables ---
 INSTALLER_URL="https://aka.ms/MCC-Ent-InstallScript-Linux"
 ZIP_FILENAME="mccscripts.zip"
+# The script is expected to be inside this subdirectory within the zip
+SCRIPT_DIR="MccScripts"
 INSTALLER_FILENAME="provisionmcc.sh"
+INSTALLER_PATH="${SCRIPT_DIR}/${INSTALLER_FILENAME}"
 
 # --- Main Execution ---
 
@@ -71,15 +74,18 @@ echo "-------------------------------------------------"
 
 # Step 4: Extract the Provisioning Script
 # ---------------------------------------
-echo "[Step 4/5] Extracting the provisioning script from the archive..."
+echo "[Step 4/5] Extracting all files from the archive..."
 # -o flag overwrites existing files without prompting
-unzip -o "$ZIP_FILENAME" "$INSTALLER_FILENAME"
-if [ -f "$INSTALLER_FILENAME" ]; then
-    echo "Successfully extracted '$INSTALLER_FILENAME'."
+unzip -o "$ZIP_FILENAME"
+# Check if the expected script now exists at its path
+if [ -f "$INSTALLER_PATH" ]; then
+    echo "Successfully found '$INSTALLER_PATH'."
     # Optional: Clean up the downloaded zip file
     rm "$ZIP_FILENAME"
 else
-    echo "ERROR: Failed to find '$INSTALLER_FILENAME' in the downloaded archive."
+    echo "ERROR: Failed to find '$INSTALLER_PATH' after extracting the archive."
+    echo "Listing all extracted files and directories for debugging:"
+    ls -R
     exit 1
 fi
 echo "-------------------------------------------------"
@@ -87,8 +93,8 @@ echo "-------------------------------------------------"
 # Step 5: Set Permissions and Run the Provisioning Script
 # -------------------------------------------------------
 echo "[Step 5/5] Setting permissions and running the MCC provisioning script..."
-chmod +x "$INSTALLER_FILENAME"
-echo "Execute permissions set on '$INSTALLER_FILENAME'."
+chmod +x "$INSTALLER_PATH"
+echo "Execute permissions set on '$INSTALLER_PATH'."
 
 echo "Running the provisioning script with the following configuration:"
 echo "  - Customer ID:      $CUSTOMER_ID"
@@ -97,7 +103,8 @@ echo "  - Drive & Size:     $DRIVE_PATH_AND_SIZE"
 echo ""
 
 # Execute the script with the configured parameters.
-sudo ./"$INSTALLER_FILENAME" \
+# We need to run it from its location.
+sudo ./"$INSTALLER_PATH" \
     customerid="$CUSTOMER_ID" \
     cachenodeid="$CACHE_NODE_ID" \
     customerkey="$CUSTOMER_KEY" \
