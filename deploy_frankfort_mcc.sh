@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ==============================================================================
-# Microsoft Connected Cache (MCC) Automated Deployment Script (v7)
+# Microsoft Connected Cache (MCC) Automated Deployment Script (v8)
 #
 # Location: Frankfort, KY
 #
@@ -9,12 +9,13 @@
 # This script automates the setup and provisioning of a Microsoft Connected
 # Cache node on an Ubuntu server. It performs the following steps:
 #   1. Updates the system's package lists and upgrades existing packages.
-#   2. Installs the 'unzip' utility if it is not already present.
-#   3. Downloads the official MCC installation ZIP archive from Microsoft.
-#   4. Extracts the contents of the ZIP archive.
-#   5. Creates the cache drive directory required by the MCC script.
-#   6. Creates the necessary logging directory for the MCC script.
-#   7. Changes into the script directory and runs the provisioning script.
+#   2. Installs/updates CA certificates to prevent SSL errors.
+#   3. Installs the 'unzip' utility if it is not already present.
+#   4. Downloads the official MCC installation ZIP archive from Microsoft.
+#   5. Extracts the contents of the ZIP archive.
+#   6. Creates the cache drive directory required by the MCC script.
+#   7. Creates the necessary logging directory for the MCC script.
+#   8. Changes into the script directory and runs the provisioning script.
 #
 # ==============================================================================
 
@@ -49,14 +50,22 @@ echo "================================================="
 
 # Step 1: Update the System
 # -------------------------
-echo "[Step 1/7] Updating system packages..."
+echo "[Step 1/8] Updating system packages..."
 sudo apt-get update && sudo apt-get upgrade -y
 echo "System update complete."
 echo "-------------------------------------------------"
 
-# Step 2: Ensure 'unzip' is installed
+# Step 2: Install/Update CA Certificates
+# --------------------------------------
+echo "[Step 2/8] Ensuring CA certificates are up to date..."
+sudo apt-get install -y ca-certificates
+sudo update-ca-certificates
+echo "CA certificates are up to date."
+echo "-------------------------------------------------"
+
+# Step 3: Ensure 'unzip' is installed
 # -----------------------------------
-echo "[Step 2/7] Checking for 'unzip' utility..."
+echo "[Step 3/8] Checking for 'unzip' utility..."
 if ! command -v unzip &> /dev/null
 then
     echo "'unzip' could not be found. Installing..."
@@ -67,9 +76,9 @@ else
 fi
 echo "-------------------------------------------------"
 
-# Step 3: Download the MCC Installer ZIP
+# Step 4: Download the MCC Installer ZIP
 # --------------------------------------
-echo "[Step 3/7] Downloading the MCC installation archive..."
+echo "[Step 4/8] Downloading the MCC installation archive..."
 if wget -L "$INSTALLER_URL" -O "$ZIP_FILENAME"; then
     echo "Archive downloaded successfully as '$ZIP_FILENAME'."
 else
@@ -78,9 +87,9 @@ else
 fi
 echo "-------------------------------------------------"
 
-# Step 4: Extract the Provisioning Script
+# Step 5: Extract the Provisioning Script
 # ---------------------------------------
-echo "[Step 4/7] Extracting all files from the archive..."
+echo "[Step 5/8] Extracting all files from the archive..."
 unzip -o "$ZIP_FILENAME" || true
 
 if [ -f "$INSTALLER_PATH" ]; then
@@ -93,23 +102,23 @@ else
 fi
 echo "-------------------------------------------------"
 
-# Step 5: Create Cache Drive Directory
+# Step 6: Create Cache Drive Directory
 # ------------------------------------
-echo "[Step 5/7] Creating cache drive directory..."
+echo "[Step 6/8] Creating cache drive directory..."
 sudo mkdir -p "$CACHE_DRIVE_PATH"
 echo "Cache drive directory '$CACHE_DRIVE_PATH' created."
 echo "-------------------------------------------------"
 
-# Step 6: Create Logging Directory
+# Step 7: Create Logging Directory
 # --------------------------------
-echo "[Step 6/7] Creating MCC logging directory..."
+echo "[Step 7/8] Creating MCC logging directory..."
 sudo mkdir -p "$LOG_DIR"
 echo "Log directory '$LOG_DIR' created."
 echo "-------------------------------------------------"
 
-# Step 7: Set Permissions and Run the Provisioning Script
+# Step 8: Set Permissions and Run the Provisioning Script
 # -------------------------------------------------------
-echo "[Step 7/7] Setting permissions and running the MCC provisioning script..."
+echo "[Step 8/8] Setting permissions and running the MCC provisioning script..."
 cd "$SCRIPT_DIR"
 
 chmod +x "$INSTALLER_FILENAME"
