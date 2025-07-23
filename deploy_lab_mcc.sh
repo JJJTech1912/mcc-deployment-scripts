@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ==============================================================================
-# Microsoft Connected Cache (MCC) GA Migration Script v3.0
+# Microsoft Connected Cache (MCC) GA Migration Script v3.1
 #
 # Location: SGS DEV LAB
 # Node ID:  8691455e-3725-4325-a51e-afe23ed5d94a
@@ -32,7 +32,7 @@ CUSTOMER_ID="6477d052-c32e-42fc-8c0a-b25b46fa5a79"
 CACHE_NODE_ID="8691455e-3725-4325-a51e-afe23ed5d94a"
 CUSTOMER_KEY="a329105f-1c09-46ce-9f6b-c5a9dedfa207"
 REGISTRATION_KEY="37ee0eb6-6099-4f84-a015-d4b51b5dbb74"
-DRIVE_PATH_AND_SIZE="/cachenode/node1,450"
+DRIVE_PATH_AND_SIZE="/cachenode/node1,100"
 
 # --- Script Variables ---
 INSTALLER_URL="https://aka.ms/mcc-ent-linux-deploy-scripts"
@@ -54,7 +54,8 @@ echo "================================================="
 # Step 1: Update the System and Certificates
 # ------------------------------------------
 echo "[Step 1/7] Updating system packages and certificates..."
-sudo apt-get update && sudo apt-get upgrade -y
+# Added options to prevent interactive prompts about configuration files
+sudo apt-get -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" upgrade -y
 sudo apt-get install -y ca-certificates unzip
 echo "System update complete."
 echo "-------------------------------------------------"
