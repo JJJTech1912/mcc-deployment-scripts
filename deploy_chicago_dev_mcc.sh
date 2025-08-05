@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ==============================================================================
-# Microsoft Connected Cache (MCC) GA Deployment Script v3.3
+# Microsoft Connected Cache (MCC) GA Deployment Script v3.4
 #
 # Location: Chicago, IL (DEV)
 # Node ID:  07752885-16df-4a3c-a384-47c43dcff0c9
@@ -41,7 +41,7 @@ echo "================================================="
 
 # Step 1: Update System and Install Prerequisites
 # -----------------------------------------------
-echo "[Step 1/9] Updating system packages and installing prerequisites..."
+echo "[Step 1/10] Updating system packages and installing prerequisites..."
 sudo apt-get update
 sudo apt-get -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" upgrade -y
 sudo apt-get install -y ca-certificates unzip wget
@@ -50,19 +50,24 @@ echo "-------------------------------------------------"
 
 # Step 2: Add Microsoft Package Repository
 # ----------------------------------------
-echo "[Step 2/9] Adding Microsoft package repository..."
-# This is required for the server to find the 'aziot-edge' packages.
+echo "[Step 2/10] Adding Microsoft package repository..."
 wget https://packages.microsoft.com/config/ubuntu/24.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
 sudo dpkg -i packages-microsoft-prod.deb
 rm packages-microsoft-prod.deb
-# Update package lists again to include the new repository
 sudo apt-get update
 echo "Microsoft package repository added."
 echo "-------------------------------------------------"
 
-# Step 3: Download the New GA Deployment Scripts
+# Step 3: Install Container Runtime
+# ---------------------------------
+echo "[Step 3/10] Installing container runtime (moby-engine)..."
+sudo apt-get install -y moby-engine
+echo "Container runtime installed."
+echo "-------------------------------------------------"
+
+# Step 4: Download the New GA Deployment Scripts
 # ----------------------------------------------
-echo "[Step 3/9] Downloading the new GA deployment scripts..."
+echo "[Step 4/10] Downloading the new GA deployment scripts..."
 if wget -L "$INSTALLER_URL" -O "$ZIP_FILENAME"; then
     echo "Archive downloaded successfully as '$ZIP_FILENAME'."
 else
@@ -71,9 +76,9 @@ else
 fi
 echo "-------------------------------------------------"
 
-# Step 4: Extract the Scripts
+# Step 5: Extract the Scripts
 # ---------------------------
-echo "[Step 4/9] Extracting scripts from the archive..."
+echo "[Step 5/10] Extracting scripts from the archive..."
 unzip -o "$ZIP_FILENAME" || true
 
 if [ -f "$INSTALLER_PATH" ]; then
@@ -86,25 +91,24 @@ else
 fi
 echo "-------------------------------------------------"
 
-# Step 5: Create Required Directories
+# Step 6: Create Required Directories
 # -----------------------------------
-echo "[Step 5/9] Creating required directories..."
+echo "[Step 6/10] Creating required directories..."
 sudo mkdir -p "$CACHE_DRIVE_PATH"
 sudo mkdir -p "$LOG_DIR"
 echo "Required directories are present."
 echo "-------------------------------------------------"
 
-# Step 6: Pre-install IoT Edge packages to handle downgrades
+# Step 7: Pre-install IoT Edge packages to handle downgrades
 # ----------------------------------------------------------
-echo "[Step 6/9] Ensuring correct IoT Edge packages are installed..."
-# This prevents an error if the installer tries to downgrade a package.
+echo "[Step 7/10] Ensuring correct IoT Edge packages are installed..."
 sudo apt-get install -y --allow-downgrades aziot-edge aziot-identity-service
 echo "IoT Edge packages are correctly configured."
 echo "-------------------------------------------------"
 
-# Step 7: Run the GA Installer
+# Step 8: Run the GA Installer
 # ----------------------------
-echo "[Step 7/9] Running the GA installation script..."
+echo "[Step 8/10] Running the GA installation script..."
 cd "$SCRIPT_DIR"
 chmod +x "$INSTALLER_FILENAME"
 
@@ -119,17 +123,16 @@ echo "GA installer script finished."
 cd ..
 echo "-------------------------------------------------"
 
-# Step 8: Set Cache Drive Permissions
+# Step 9: Set Cache Drive Permissions
 # -----------------------------------
-echo "[Step 8/9] Setting required permissions on the cache drive..."
+echo "[Step 9/10] Setting required permissions on the cache drive..."
 sudo chmod 777 -R "$CACHE_DRIVE_PATH"
 echo "Permissions set on '$CACHE_DRIVE_PATH'."
 echo "-------------------------------------------------"
 
-# Step 9: Restart the MCC Container
-# ---------------------------------
-echo "[Step 9/9] Waiting for container to initialize, then restarting..."
-# Add a grace period to allow the IoT Edge agent to deploy the container
+# Step 10: Restart the MCC Container
+# ----------------------------------
+echo "[Step 10/10] Waiting for container to initialize, then restarting..."
 sleep 30
 sudo iotedge restart MCC
 echo "MCC container restart command issued."
